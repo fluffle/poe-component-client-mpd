@@ -312,7 +312,15 @@ sub _got_error {
 
     my $session = $h->{session};
     my $msg     = shift @{ $h->{fifo} };
-    $k->post($session, 'mpd_error', $msg, $errstr);
+    if ($msg->request eq "password") {
+        $k->post(
+            $session, "mpd_connect_error_fatal",
+            "MPD password incorrect, error was: '$errstr'"
+        );
+        $k->yield("disconnect");
+    } else {
+        $k->post($session, 'mpd_error', $msg, $errstr);
+    }
 }
 
 
